@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Qwirkle</title>
+
+  <script src="src/Grid.js"></script>
+
+  <style>
+  td, img {
+    padding: 0;
+    margin: 0;
+    height: 36px;
+  }
+
+  td {
+    border: solid transparent 3px;'
+  }
+
+  td.highlight {
+    border: solid #bbbbff 3px;
+  }
+
+  td.highlight img {
+    height: 24px;
+  }
+
+  #header {
+    position: fixed;
+    top: 0;
+    height: 150px;
+    background-color: #eee;
+  }
+  #content {
+    position: absolute;
+    top: 150px;
+    overflow: auto;
+    bottom: 0;
+    left: 0;
+    right: 0  ;
+  }
+
+  #content>div {
+    position: absolute;
+    top: 0;
+    overflow: auto;
+    bottom: 0;
+    left: 0;
+    right: 0  ;
+  }
+
+  #hand {
+    float: left;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  table {
+    border-spacing: 0;
+    background-color: transparent;
+  }
+  </style>
+</head>
+
+<div id="header">
+
+  <input id='1' type="radio" name="colour">
+  <label for="1" style="background-color: rgb(254, 73, 81)">red</label>
+  <input id='2' type="radio" name="colour">
+  <label for="2" style="background-color: rgb(5, 184, 100)">green</label>
+  <input id='3' type="radio" name="colour">
+  <label for="3" style="background-color: rgb(46, 159, 243)">blue</label>
+  <input id='4' type="radio" name="colour">
+  <label for="4" style="background-color: rgb(255, 124, 46)">orange</label>
+  <input id='5' type="radio" name="colour">
+  <label for="5" style="background-color: rgb(246, 226, 50)">yellow</label>
+  <input id='6' type="radio" name="colour">
+  <label for="6" style="background-color: rgb(116, 84, 219)">purple</label>
+  <br>
+  <input id="a" type="radio" name="shape">
+  <label for="a"><img src="images/circle.png"/></label>
+  <input id="b" type="radio" name="shape">
+  <label for="b"><img src="images/square.png"/></label>
+  <input id="c" type="radio" name="shape">
+  <label for="c"><img src="images/diamond.png"/></label>
+  <input id="d" type="radio" name="shape">
+  <label for="d"><img src="images/star.png"/></label>
+  <input id="e" type="radio" name="shape">
+  <label for="e"><img src="images/cross.png"/></label>
+  <input id="f" type="radio" name="shape">
+  <label for="f"><img src="images/clova.png"/></label>
+
+  <button id="addToHand">Add To Hand</button>
+
+    <hr>
+
+  <table id="hand">
+  </table>
+  <button id="getBestScore">Get Best Score</button>
+  <div style="clear: both"></div>
+</div>
+
+<div id="content">
+
+  <div style="right: 50%; background-color: #ddd">
+    <table id="grid">
+    </table>
+  </div>
+
+  <div style="left: 50%">
+    Results
+    <div id="results"></div>
+  </div>
+
+</div>
+
+
+<body>
+</body>
+
+
+<script>
+
+  var grid = new Grid();
+
+  var imgs = {'a': 'circle',
+              'b': 'square',
+              'c': 'diamond',
+              'd': 'star',
+              'e': 'cross',
+              'f': 'clova'}
+  var colours = {'1': 'rgb(254, 73, 81)',  // red
+                 '2': 'rgb(5, 184, 100)',  // green
+                 '3': 'rgb(46, 159, 243)',  // blue
+                 '4': 'rgb(255, 124, 46)',  // orange
+                 '5': 'rgb(246, 226, 50)',  // yellow
+                 '6': 'rgb(116, 84, 219)',  // purple
+  }
+
+  var hand = [];
+  hand = ["b3", "b2", "b1", "d5", "a3", "f4"];
+
+  var results = [];
+
+  var getTdHtml = function(tile, highlight, row, column) {
+    var cls = '';
+    if (highlight) {
+      cls = 'highlight';
+    }
+    var src = tile == '' ? 'spacer.png' : imgs[tile[0]] + '.png';
+    var color = tile == '' ? 'transparent' : colours[tile[1]];
+    var html = '<td style="background-color:' + color + '" class="' + cls + '">';
+    html += '<img data-tile="' + tile + '" src="images/' + src + '" data-row="' + row + '" data-column="' + column + '">';
+    html += '</td>';
+    return html;
+  }
+
+  var renderTiles = function(resultGrid, id, test) {
+
+    // for each row...
+    // var rows_html = tiles.map(function(row, r){
+    //   var row_html = row.map(function(tile, c){
+    //     console.log(r, c, tile);
+    //     var src = tile == '' ? 'spacer.png' : imgs[tile[0]] + '.png';
+    //     var color = tile == '' ? 'white' : colours[tile[1]];
+    //     return '<td style="background-color:' + color + '"><img src="images/' + src + '"></td>';
+    //   });
+    //   return '<tr>' + row_html.join('') + '</tr>';
+    // });
+    var tiles = resultGrid.grid
+    var html = '';
+    for (var row=-1; row<=tiles.length; row++) {
+      html += '<tr>';
+      for (var column=-1; column<=tiles[0].length; column++) {
+        var tile = resultGrid.getTileAt(row, column);
+
+        var highlight = false;
+        if (test) {
+          if (grid.isValid({'id': test, 'row': row, 'column': column})) {
+            highlight = true;
+            tile=test;
+          }
+        }
+        html += getTdHtml(tile, highlight, row, column);
+      }
+      html += '</tr>';
+    }
+    document.getElementById(id).innerHTML = html;
+  }
+
+  // grid.addTiles([ {'id': 'a4', 'row': 0, 'column': 0},
+  //                 {'id': 'a1', 'row': 0, 'column': 2},
+  //                {'id': 'd4', 'row': 1, 'column': 0},
+  //                {'id': 'd5', 'row': 1, 'column': 1},
+  //                {'id': 'd1', 'row': 1, 'column': 2},
+  //                {'id': 'e5', 'row': 2, 'column': 1},
+  //                {'id': 'e1', 'row': 2, 'column': 2},
+  //                {'id': 'f5', 'row': 3, 'column': 1},
+  //                {'id': 'b5', 'row': 4, 'column': 1}])
+
+
+  var renderHand = function() {
+    var hand_html = hand.map(function(tile){
+      return getTdHtml(tile)
+    })
+    document.getElementById('hand').innerHTML = hand_html.join('');
+  }
+
+
+  var renderResults = function(results) {
+    // results are a list of tile sequences
+    // e.g. [{'id': 'e1', 'row': '0', 'column': 2}, {'id': 'e2', 'row': '1', 'column': 2}]
+
+    var resultsHtml = results.map(function(result, idx){
+      var rowHtml = result.map(function(tile){
+        return getTdHtml(tile.id);
+      });
+      rowHtml = '<table><tr>' + rowHtml.join('') + '</tr></table>';
+      rowHtml += '<button class="showResult" data-result="' + idx + '">Show</button>';
+      return rowHtml;
+    });
+    document.getElementById('results').innerHTML = resultsHtml.join('');
+  }
+
+
+  var renderResultOnGrid = function(result) {
+    console.log('renderResultOnGrid', result)
+    var resultGrid = grid.clone();
+    result.forEach(function(r){
+      console.log(r, r.id, r.row, r.column);
+      var rid = r.id,
+        rrow = r.row,
+        rcol = r.column;
+      console.log(r, rid, rrow, rcol);
+      resultGrid.addTile(rid, rrow, rcol);
+    });
+    renderTiles(resultGrid, 'grid');
+  }
+
+
+  document.getElementById('results').addEventListener('click', function(event){
+    console.log(event.target.className);
+
+    if (event.target.className == "showResult") {
+      var resultIndex = parseInt(event.target.getAttribute('data-result'), 10);
+      renderResultOnGrid(results[resultIndex]);
+    }
+  });
+
+  // document.getElementById('hand').addEventListener('click', function(event){
+  //   var tile = event.target.getAttribute('data-tile');
+  //   renderTiles(grid.grid, 'grid', tile);
+  // });
+
+  document.getElementById('header').addEventListener('click', function(event){
+    var letter = document.querySelector("input[name='shape']:checked");
+    var number = document.querySelector("input[name='colour']:checked");
+    if (letter && number) {
+      var tileId = letter.id + number.id;
+      renderTiles(grid, 'grid', tileId);
+    }
+  });
+
+  document.getElementById('grid').addEventListener('click', function(event){
+    console.log(arguments);
+
+    var tile = event.target.getAttribute('data-tile');
+    var row = parseInt(event.target.getAttribute('data-row'));
+    var column = parseInt(event.target.getAttribute('data-column'));
+    console.log(tile, row, column);
+
+    grid.addTile(tile, row, column);
+    renderTiles(grid, 'grid');
+  });
+
+  document.getElementById('addToHand').addEventListener('click', function(event){
+    event.preventDefault();
+
+    var letter = document.querySelector("input[name='shape']:checked").id;
+    var number = document.querySelector("input[name='colour']:checked").id;
+    var tileId = letter + number;
+
+    hand.push(tileId);
+    renderHand();
+    return false;
+  });
+
+  document.getElementById('getBestScore').addEventListener('click', function(event){
+    event.preventDefault();
+
+    var tileGroups = grid.getTileGroups(hand);
+
+    results = [];
+    for (var g=0; g<tileGroups.length; g++) {
+
+      // for each group, e.g. ["a1", "a4", "a6"], try every possible order
+      var allOrders = grid.getAllOrderings(tileGroups[g]);
+
+      for (var h=0; h<allOrders.length; h++) {
+        var r = tryTiles(allOrders[h], grid, undefined, []);
+        results = results.concat(r);
+      }
+    }
+    
+    results.sort(function(a, b) { 
+        return b.length - a.length;
+    })
+    console.log(results);
+    console.log("Found ", results.length, "results");
+
+    renderResults(results);
+  });
+
+
+  // show initital grid
+  renderTiles(grid, 'grid');
+
+  renderHand();
+
+</script>
+
+</html>
