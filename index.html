@@ -7,14 +7,21 @@
   <script src="src/Grid.js"></script>
 
   <style>
-  td, img {
+
+  * {
+    box-sizing: border-box;
+  }
+ img {
     padding: 0;
     margin: 0;
     height: 36px;
   }
 
   td {
-    border: solid transparent 3px;'
+    border: solid transparent 3px;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 
   td.highlight {
@@ -26,31 +33,61 @@
   }
 
   #header {
-    position: fixed;
-    top: 0;
-    height: 150px;
-    background-color: #eee;
-  }
-  #content {
     position: absolute;
-    top: 150px;
-    overflow: auto;
-    bottom: 0;
     left: 0;
-    right: 0  ;
+    top: 0;
+    bottom: 0;
+    /*height: 150px;*/
+    width: 306px;
+    background-color: #eee;
+    padding: 15px;
   }
 
-  #content>div {
+  #header label {
+    width: 46px;
+    height: 46px;
+    display: block;
+    border: solid black 5px;
+  }
+
+  #tilepicker tr:nth-of-type(1) label {
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+    border-bottom-width: 0;
+    height: 25px;
+  }
+  #header input {
+    display: none;
+  }
+
+  #tilepicker tr:nth-of-type(2) input:checked ~ label {
+      border-color: transparent;
+  }
+
+  #content {
     position: absolute;
-    top: 0;
+    top: 0px;
     overflow: auto;
     bottom: 0;
-    left: 0;
+    left: 306px;
     right: 0  ;
   }
 
   #hand {
     float: left;
+  }
+
+  #results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    overflow: scroll;
+    bottom: 0;
+    top: 220px;
+  }
+
+  #grid {
+    margin: auto;
   }
 
   body {
@@ -66,31 +103,39 @@
 
 <div id="header">
 
-  <input id='1' type="radio" name="colour">
-  <label for="1" style="background-color: rgb(254, 73, 81)">red</label>
-  <input id='2' type="radio" name="colour">
-  <label for="2" style="background-color: rgb(5, 184, 100)">green</label>
-  <input id='3' type="radio" name="colour">
-  <label for="3" style="background-color: rgb(46, 159, 243)">blue</label>
-  <input id='4' type="radio" name="colour">
-  <label for="4" style="background-color: rgb(255, 124, 46)">orange</label>
-  <input id='5' type="radio" name="colour">
-  <label for="5" style="background-color: rgb(246, 226, 50)">yellow</label>
-  <input id='6' type="radio" name="colour">
-  <label for="6" style="background-color: rgb(116, 84, 219)">purple</label>
-  <br>
-  <input id="a" type="radio" name="shape">
-  <label for="a"><img src="images/circle.png"/></label>
-  <input id="b" type="radio" name="shape">
-  <label for="b"><img src="images/square.png"/></label>
-  <input id="c" type="radio" name="shape">
-  <label for="c"><img src="images/diamond.png"/></label>
-  <input id="d" type="radio" name="shape">
-  <label for="d"><img src="images/star.png"/></label>
-  <input id="e" type="radio" name="shape">
-  <label for="e"><img src="images/cross.png"/></label>
-  <input id="f" type="radio" name="shape">
-  <label for="f"><img src="images/clova.png"/></label>
+  <table id="tilepicker">
+    <tbody>
+      <tr>
+        <td>
+          <input id='1' type="radio" name="colour"><label for="1" style="background-color: rgb(254, 73, 81)"></label>
+        </td>
+        <td><input id='2' type="radio" name="colour"><label for="2" style="background-color: rgb(5, 184, 100)"></label></td>
+        <td><input id='3' type="radio" name="colour"><label for="3" style="background-color: rgb(46, 159, 243)"></label></td>
+        <td><input id='4' type="radio" name="colour"><label for="4" style="background-color: rgb(255, 124, 46)"></label></td>
+        <td><input id='5' type="radio" name="colour"><label for="5" style="background-color: rgb(246, 226, 50)"></label></td>
+        <td><input id='6' type="radio" name="colour"><label for="6" style="background-color: rgb(116, 84, 219)"></label></td>
+      </tr>
+      <tr>
+        <td>
+          <input id="a" type="radio" name="shape"><label for="a"><img src="images/circle.png"/></label>
+        </td>
+        <td>
+          <input id="b" type="radio" name="shape"><label for="b"><img src="images/square.png"/></label>
+        </td>
+        <td>
+          <input id="c" type="radio" name="shape"><label for="c"><img src="images/diamond.png"/></label>
+        </td>
+        <td>
+          <input id="d" type="radio" name="shape"><label for="d"><img src="images/star.png"/></label>
+        </td>
+        <td>
+          <input id="e" type="radio" name="shape"><label for="e"><img src="images/cross.png"/></label>
+        </td>
+        <td>
+          <input id="f" type="radio" name="shape"><label for="f"><img src="images/clova.png"/></label>
+        </td>
+    </tbody>
+  </table>
 
   <button id="addToHand">Add To Hand</button>
 
@@ -99,21 +144,15 @@
   <table id="hand">
   </table>
   <button id="getBestScore">Get Best Score</button>
-  <div style="clear: both"></div>
-</div>
 
-<div id="content">
-
-  <div style="right: 50%; background-color: #ddd">
-    <table id="grid">
-    </table>
-  </div>
-
-  <div style="left: 50%">
     Results
     <div id="results"></div>
-  </div>
 
+</div>
+
+<div id="content" style="background-color: #ddd">
+  <table id="grid">
+  </table>
 </div>
 
 
@@ -190,15 +229,15 @@
     document.getElementById(id).innerHTML = html;
   }
 
-  // grid.addTiles([ {'id': 'a4', 'row': 0, 'column': 0},
-  //                 {'id': 'a1', 'row': 0, 'column': 2},
-  //                {'id': 'd4', 'row': 1, 'column': 0},
-  //                {'id': 'd5', 'row': 1, 'column': 1},
-  //                {'id': 'd1', 'row': 1, 'column': 2},
-  //                {'id': 'e5', 'row': 2, 'column': 1},
-  //                {'id': 'e1', 'row': 2, 'column': 2},
-  //                {'id': 'f5', 'row': 3, 'column': 1},
-  //                {'id': 'b5', 'row': 4, 'column': 1}])
+  grid.addTiles([ {'id': 'a4', 'row': 0, 'column': 0},
+                  {'id': 'a1', 'row': 0, 'column': 2},
+                 {'id': 'd4', 'row': 1, 'column': 0},
+                 {'id': 'd5', 'row': 1, 'column': 1},
+                 {'id': 'd1', 'row': 1, 'column': 2},
+                 {'id': 'e5', 'row': 2, 'column': 1},
+                 {'id': 'e1', 'row': 2, 'column': 2},
+                 {'id': 'f5', 'row': 3, 'column': 1},
+                 {'id': 'b5', 'row': 4, 'column': 1}])
 
 
   var renderHand = function() {
@@ -254,9 +293,26 @@
   //   renderTiles(grid.grid, 'grid', tile);
   // });
 
-  document.getElementById('header').addEventListener('click', function(event){
+  document.getElementById('tilepicker').addEventListener('click', function(event){
     var letter = document.querySelector("input[name='shape']:checked");
     var number = document.querySelector("input[name='colour']:checked");
+    // if colour picked, add color to shapes
+    // console.log(letter, number);
+    if (number) {
+      var color = colours["" + number.id];
+      var shapes = document.querySelectorAll("input[name='shape']");
+      console.log(number.id, color, shapes);
+      // [].forEach.call(shapes, function(element, index) {
+      //   console.log(element);
+      //   element.style['background-color'] = color;
+      // });
+
+      for (var element of shapes) {
+        console.log(element);
+        element.nextSibling.style['background-color'] = color;
+      }
+      // document.getElementById('tilepicker').style['background-color'] = color;
+    }
     if (letter && number) {
       var tileId = letter.id + number.id;
       renderTiles(grid, 'grid', tileId);
