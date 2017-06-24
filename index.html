@@ -11,6 +11,33 @@
   * {
     box-sizing: border-box;
   }
+
+  @keyframes bounceIn {
+    0% {
+      transform: scale(0.1);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shake {
+    0% {
+      transform: rotate(-5deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+    100% {
+      transform: rotate(-5deg);
+    }
+  }
+
  img {
     padding: 0;
     margin: 0;
@@ -25,11 +52,11 @@
   }
 
   td.highlight {
-    border: solid #bbbbff 3px;
+    opacity: 0.5;
   }
 
   td.highlight img {
-    height: 24px;
+    animation: bounceIn 0.5s, shake 0.2s 0.5s infinite;
   }
 
   #header {
@@ -88,6 +115,10 @@
 
   #grid {
     margin: auto;
+  }
+
+  #grid img {
+    display: block;
   }
 
   body {
