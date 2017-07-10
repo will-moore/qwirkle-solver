@@ -8,8 +8,20 @@
 
   <style>
 
+  html {
+    font-family: "Roboto", sans-serif;
+    font-weight: thin;
+  }
+
   * {
     box-sizing: border-box;
+  }
+
+  h2 {
+    font-weight: 100;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
   }
 
   @keyframes bounceIn {
@@ -64,10 +76,10 @@
     left: 0;
     top: 0;
     bottom: 0;
-    /*height: 150px;*/
     width: 306px;
     background-color: #eee;
     padding: 15px;
+    overflow: auto;
   }
 
   #header label {
@@ -75,6 +87,10 @@
     height: 46px;
     display: block;
     border: solid black 5px;
+  }
+
+  #tilepicker {
+    margin-bottom: 15px;
   }
 
   #tilepicker tr:nth-of-type(1) label {
@@ -101,13 +117,12 @@
   }
 
   #hand {
-    float: left;
+    margin-top: 15px;
   }
 
   #results {
-    position: absolute;
-    left: 0;
-    right: 0;
+      left: 0;
+      right: 0;
     overflow: scroll;
     bottom: 0;
     top: 220px;
@@ -117,8 +132,32 @@
     margin: auto;
   }
 
-  #grid img {
+  #grid img, #hand img {
     display: block;
+  }
+
+  #hand img {
+    border: solid black 5px;
+    width: 46px;
+    height: 46px;
+    position: relative;
+  }
+
+  #hand td::before {
+    content: "x";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    z-index: 10;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    opacity: 0;
+  }
+
+  #hand td:hover::before {
+    opacity: 1;
   }
 
   body {
@@ -129,10 +168,42 @@
     border-spacing: 0;
     background-color: transparent;
   }
+
+  .btn {
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
+    background-color: #F44336;
+    text-align: center;
+    letter-spacing: .5px;
+    font-size: 1rem;
+    outline: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    vertical-align: middle;
+    z-index: 1;
+    transition: .3s ease-out;
+    border: none;
+    border-radius: 2px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 2rem;
+    text-transform: uppercase;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);
+    font-weight: normal;
+  }
+  .btn:hover, .btn-large:hover {
+    background-color: #f1786f;
+  }
   </style>
 </head>
 
 <div id="header">
+
+  <h2>Pick Color and Shape:</h2>
 
   <table id="tilepicker">
     <tbody>
@@ -168,16 +239,23 @@
     </tbody>
   </table>
 
-  <button id="addToHand">Add To Hand</button>
 
-    <hr>
+  <a class="btn" id="addToHand" style='display:none'>Add to Hand</a>
+
+  <!-- <p>Click shape in possible locations to add to board... -></p> -->
+
+  <div style="border-bottom: 1px solid #9e9e9e; margin: 15px 0"></div>
+
+  <h2>Tiles in Hand:</h2>
 
   <table id="hand">
   </table>
-  <button id="getBestScore">Get Best Score</button>
 
-    Results
-    <div id="results"></div>
+  <div style="border-bottom: 1px solid #9e9e9e; margin: 15px 0"></div>
+
+  <h2>Results:</h2>
+  <a id="getBestScore" class="btn">Get Best Score</a>
+  <div id="results"></div>
 
 </div>
 
@@ -328,25 +406,20 @@
     var letter = document.querySelector("input[name='shape']:checked");
     var number = document.querySelector("input[name='colour']:checked");
     // if colour picked, add color to shapes
-    // console.log(letter, number);
     if (number) {
       var color = colours["" + number.id];
       var shapes = document.querySelectorAll("input[name='shape']");
-      console.log(number.id, color, shapes);
-      // [].forEach.call(shapes, function(element, index) {
-      //   console.log(element);
-      //   element.style['background-color'] = color;
-      // });
-
       for (var element of shapes) {
-        console.log(element);
         element.nextSibling.style['background-color'] = color;
       }
-      // document.getElementById('tilepicker').style['background-color'] = color;
     }
+    // if a complete tile is picked...
     if (letter && number) {
       var tileId = letter.id + number.id;
+      // ...show it on the grid
       renderTiles(grid, 'grid', tileId);
+      // ...and show the 'Add to Hand' button
+      document.getElementById('addToHand').style.display = 'inline-block';
     }
   });
 
@@ -364,6 +437,11 @@
 
   document.getElementById('addToHand').addEventListener('click', function(event){
     event.preventDefault();
+
+    if (hand.length > 5) {
+      console.warn("Can't add more than 6 tiles to your hand");
+      return;
+    }
 
     var letter = document.querySelector("input[name='shape']:checked").id;
     var number = document.querySelector("input[name='colour']:checked").id;
@@ -398,6 +476,17 @@
     console.log("Found ", results.length, "results");
 
     renderResults(results);
+  });
+
+  document.getElementById('hand').addEventListener('click', function(event){
+    var tds = document.querySelectorAll("#hand td");
+    var i = Array.prototype.indexOf.call(tds, event.target);
+    if (i === -1) {
+      // clicked image instead of 'X' ::before element
+      return;
+    }
+    hand.splice(i, 1);
+    renderHand();
   });
 
 
