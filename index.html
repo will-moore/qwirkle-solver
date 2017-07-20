@@ -305,18 +305,8 @@
     return html;
   }
 
-  var renderTiles = function(resultGrid, id, test) {
+  var renderTiles = function(resultGrid, domId, test, highlightCoords) {
 
-    // for each row...
-    // var rows_html = tiles.map(function(row, r){
-    //   var row_html = row.map(function(tile, c){
-    //     console.log(r, c, tile);
-    //     var src = tile == '' ? 'spacer.png' : imgs[tile[0]] + '.png';
-    //     var color = tile == '' ? 'white' : colours[tile[1]];
-    //     return '<td style="background-color:' + color + '"><img src="images/' + src + '"></td>';
-    //   });
-    //   return '<tr>' + row_html.join('') + '</tr>';
-    // });
     var tiles = resultGrid.grid
     var html = '';
     for (var row=-1; row<=tiles.length; row++) {
@@ -330,12 +320,20 @@
             highlight = true;
             tile=test;
           }
+        } else if (highlightCoords) {
+          var coords;
+          for (var i=0; i<highlightCoords.length; i++) {
+            coords = highlightCoords[i];
+            if (coords.row === row && coords.column === column) {
+              highlight = true;
+            }
+          }
         }
         html += getTdHtml(tile, highlight, row, column);
       }
       html += '</tr>';
     }
-    document.getElementById(id).innerHTML = html;
+    document.getElementById(domId).innerHTML = html;
   }
 
   grid.addTiles([ {'id': 'a4', 'row': 0, 'column': 0},
@@ -380,15 +378,9 @@
   var renderResultOnGrid = function(result) {
     console.log('renderResultOnGrid', result)
     var resultGrid = grid.clone();
-    result.forEach(function(r){
-      console.log(r, r.id, r.row, r.column);
-      var rid = r.id,
-        rrow = r.row,
-        rcol = r.column;
-      console.log(r, rid, rrow, rcol);
-      resultGrid.addTile(rid, rrow, rcol);
-    });
-    renderTiles(resultGrid, 'grid');
+    var newTiles = resultGrid.addTilesOneByOne(result);
+    console.log('newTiles', newTiles);
+    renderTiles(resultGrid, 'grid', undefined, newTiles);
   }
 
 

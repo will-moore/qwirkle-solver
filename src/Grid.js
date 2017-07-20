@@ -471,17 +471,8 @@ Grid.prototype.isRow = function(tiles) {
     return allRowsSame;
 }
 
-Grid.prototype.getScore = function(tiles) {
-    // Get the score from the list of tiles when placed in the grid
-    // tiles is a list of {id, row, column} objects
-
-    console.log('getScore...', tiles);
-
-    var score;
-
-    // Add tiles to a clone of this Grid before we get score
-    // NB: each time row or column is -1 the grid is expanded by prepending rows/columns
-
+Grid.prototype.addTilesOneByOne = function(tiles) {
+    // TODO: Add tests for this!
     var newTiles = [];
 
     function incRows() {
@@ -495,9 +486,8 @@ Grid.prototype.getScore = function(tiles) {
         })
     }
 
-    var resultGrid = this.clone();
     tiles.forEach(function(t){
-      resultGrid.addTile(t.id, t.row, t.column);
+      this.addTile(t.id, t.row, t.column);
       newTiles.push({'id': t.id, 'row': t.row, 'column': t.column});
       // We update newTiles coordinates to match expanded grid
       if (t.row === -1) {
@@ -506,7 +496,27 @@ Grid.prototype.getScore = function(tiles) {
       if (t.column === -1) {
         incColumns();
       }
-    });
+    }.bind(this));
+
+    return newTiles;
+}
+
+Grid.prototype.getScore = function(tiles) {
+    // Get the score from the list of tiles when placed in the grid
+    // tiles is a list of {id, row, column} objects
+
+    console.log('getScore...', tiles);
+
+    var score;
+
+    // Add tiles to a clone of this Grid before we get score
+    // NB: each time row or column is -1 the grid is expanded by prepending rows/columns
+
+    var newTiles = [];
+
+    var resultGrid = this.clone();
+
+    var newTiles = resultGrid.addTilesOneByOne(tiles);
 
     console.log('newTiles', newTiles);
 
