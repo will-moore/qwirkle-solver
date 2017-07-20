@@ -507,6 +507,10 @@ Grid.prototype.getScore = function(tiles) {
 
     console.log('getScore...', tiles);
 
+    if (tiles.length === 0) {
+        return 0;
+    }
+
     var score;
 
     // Add tiles to a clone of this Grid before we get score
