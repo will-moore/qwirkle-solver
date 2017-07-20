@@ -229,6 +229,16 @@ Grid.prototype.getTileAt = function(row, column) {
 }
 
 Grid.prototype.getRowAndColumnTilesFrom = function(row, column) {
+
+    var r = this.getRowAndColumnTilesAndCoordsFrom(row, column);
+    var rowTiles = r[0];
+    var columnTiles = r[1];
+    rowTiles = rowTiles.map(function(t){return t.id});
+    columnTiles = columnTiles.map(function(t){return t.id});
+    return [rowTiles, columnTiles];
+}
+
+Grid.prototype.getRowAndColumnTilesAndCoordsFrom = function(row, column) {
     var tile;
     // get row tiles
     var rowTiles = [];
@@ -239,7 +249,7 @@ Grid.prototype.getRowAndColumnTilesFrom = function(row, column) {
         c = c - 1;
         tile = this.getTileAt(r, c);
         if (tile != '') {
-            rowTiles.push(tile);
+            rowTiles.push({id:tile, row:r, column:c});
         }
     }
     // check to right...
@@ -250,7 +260,7 @@ Grid.prototype.getRowAndColumnTilesFrom = function(row, column) {
         c = c + 1;
         tile = this.getTileAt(r, c);
         if (tile != '') {
-            rowTiles.push(tile);
+            rowTiles.push({id:tile, row:r, column:c});
         }
     }
     // check up...
@@ -261,7 +271,7 @@ Grid.prototype.getRowAndColumnTilesFrom = function(row, column) {
         r = r - 1;
         tile = this.getTileAt(r, c);
         if (tile != '') {
-            columnTiles.push(tile);
+            columnTiles.push({id:tile, row:r, column:c});
         }
     }
     // check down...
@@ -272,7 +282,7 @@ Grid.prototype.getRowAndColumnTilesFrom = function(row, column) {
         r = r + 1;
         tile = this.getTileAt(r, c);
         if (tile != '') {
-            columnTiles.push(tile);
+            columnTiles.push({id:tile, row:r, column:c});
         }
     }
     return [rowTiles, columnTiles];
@@ -433,5 +443,105 @@ Grid.prototype.getValidPlaces = function(tile, restrictTo) {
         }
     }
     return places;
+}
+
+Grid.prototype.isColumn = function(tiles) {
+    // true if all tiles are in same Column
+    var allColumnsSame = tiles.reduce(function(prev, t, idx, arr){
+        if (idx + 1 >= arr.length) {
+            // No more tiles to compare
+            return prev;
+        }
+        // True if next column is same as current one
+        return prev && t.column === arr[idx + 1].column;
+    }, true);
+    return allColumnsSame;
+}
+
+Grid.prototype.isRow = function(tiles) {
+    // true if all tiles are in same Row
+    var allRowsSame = tiles.reduce(function(prev, t, idx, arr){
+        if (idx + 1 >= arr.length) {
+            // No more tiles to compare
+            return prev;
+        }
+        // True if next row is same as current one
+        return prev && t.row === arr[idx + 1].row;
+    }, true);
+    return allRowsSame;
+}
+
+Grid.prototype.getScore = function(tiles) {
+    // Get the score from the list of tiles when placed in the grid
+    // tiles is a list of {id, row, column} objects
+
+    console.log('getScore...', tiles);
+
+    var score;
+
+    // Add tiles to a clone of this Grid before we get score
+    // NB: each time row or column is -1 the grid is expanded by prepending rows/columns
+
+    var newTiles = [];
+
+    function incRows() {
+        newTiles.forEach(function(t){
+            t.row++;
+        })
+    }
+    function incColumns() {
+        newTiles.forEach(function(t){
+            t.column++;
+        })
+    }
+
+    var resultGrid = this.clone();
+    tiles.forEach(function(t){
+      resultGrid.addTile(t.id, t.row, t.column);
+      newTiles.push({'id': t.id, 'row': t.row, 'column': t.column});
+      // We update newTiles coordinates to match expanded grid
+      if (t.row === -1) {
+        incRows()
+      }
+      if (t.column === -1) {
+        incColumns();
+      }
+    });
+
+    console.log('newTiles', newTiles);
+
+    if (this.isColumn(newTiles)) {
+        // Get score for Column...
+        var t = newTiles[0];
+        var columnTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[1];
+        score = 0;
+        if (columnTiles.length > 0) {
+            // Adding a single tile to a row, isColumn() is true but columnTiles.length is 0
+            score = columnTiles.length + 1;     // include the tile itself
+        }
+
+        // Get score for all Rows...
+        newTiles.forEach(function(t){
+            var rowTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[0];
+            if (rowTiles.length > 0) {
+                score += (rowTiles.length + 1);
+            }
+        }.bind(resultGrid));
+
+    } else if (this.isRow(newTiles)) {
+        // Get score for Row...
+        var t = newTiles[0];
+        var rowTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[0];
+        score = rowTiles.length + 1;     // include the tile itself
+
+        // Get score for all Columns...
+        newTiles.forEach(function(t){
+            var columnTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[1];
+            if (columnTiles.length > 0) {
+                score += (columnTiles.length + 1);
+            }
+        }.bind(resultGrid));
+    }
+    return score;
 }
 

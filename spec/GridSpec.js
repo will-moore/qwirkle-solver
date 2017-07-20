@@ -359,6 +359,51 @@ describe("Grid", function() {
     ]);
   });
 
+
+  it("should be possible to tell if list of tiles is a Row or Column", function() {
+    expect(grid.isRow([{'row': 1}, {'row': 1}])).toBeTruthy();
+    expect(grid.isRow([{'row': 1}, {'row': 1}, {'row': 2}])).toBeFalsy();
+    expect(grid.isRow([{'row': 1}])).toBeTruthy();
+
+    expect(grid.isColumn([{'column': 0}, {'column': 0}])).toBeTruthy();
+    expect(grid.isColumn([{'column': 0}, {'column': 1}, {'column': 2}])).toBeFalsy();
+    expect(grid.isColumn([{'column': 0}])).toBeTruthy();
+  });
+
+
+  it("should be possible to get a Score for a list of tiles", function() {
+    // populate grid
+    grid.addTiles([{'id': 'a1', 'row': 0, 'column': 0},
+                   {'id': 'a2', 'row': 0, 'column': 1},
+                   {'id': 'b2', 'row': 1, 'column': 1},
+                   {'id': 'b3', 'row': 1, 'column': 2}])
+    expect(grid.grid).toEqual([
+        ['a1', 'a2', ''],
+        ['',   'b2',   'b3']
+      ]);
+
+    // Test above checks that this is one of the valid results for this grid...
+    var tests = [
+        [{'id': 'b4', 'row': 1, 'column': 3}, {'id': 'b2', 'row': 0, 'column': 3}],
+        [{'id': 'b4', 'row': 1, 'column': 3}, {'id': 'b2', 'row': 2, 'column': 3}],
+        [{'id': 'b4', 'row': 2, 'column': 2}, {'id': 'b2', 'row': 3, 'column': 2}],
+        [{'id': 'b4', 'row': 2, 'column': 2}, {'id': 'b2', 'row': 2, 'column': 3}],
+        [{'id': 'b4', 'row': 2, 'column': 2}],
+        // Adding tiles with row/column of -1 expands grid each time...
+        [{'id': 'a3', 'row': 0, 'column': -1}],
+        [{'id': 'a3', 'row': 0, 'column': -1}, {'id': 'a4', 'row': 0, 'column': -1}],
+        [{'id': 'a3', 'row': 0, 'column': -1}, {'id': 'a4', 'row': -1, 'column': 0}],
+        [{'id': 'a3', 'row': 0, 'column': -1}, {'id': 'a4', 'row': -1, 'column': 0}, {'id': 'a5', 'row': -1, 'column': 0}],
+    ]
+
+    var results = [5, 5, 3, 4, 2, 3, 4, 5, 6];
+
+    tests.forEach(function(tiles, idx){
+      console.log('idx', idx);
+      expect(grid.getScore(tiles)).toEqual(results[idx]);
+    });
+  });
+
   // describe("when song has been paused", function() {
   //   beforeEach(function() {
   //     player.play(song);

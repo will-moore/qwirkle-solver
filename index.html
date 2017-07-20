@@ -288,9 +288,9 @@
   }
 
   var hand = [];
-  hand = ["b3", "b2", "b1", "d5", "a3", "f4"];
+  hand = ["b2", "b1", "d5", "a3", "f4"];
 
-  var results = [];
+  var scoredResults = [];
 
   var getTdHtml = function(tile, highlight, row, column) {
     var cls = '';
@@ -357,15 +357,19 @@
   }
 
 
-  var renderResults = function(results) {
-    // results are a list of tile sequences
+  var renderResults = function(scoredResults) {
+    // scoredResults are a pair of [score, result]
+    // result is a list of tile sequences
     // e.g. [{'id': 'e1', 'row': '0', 'column': 2}, {'id': 'e2', 'row': '1', 'column': 2}]
 
-    var resultsHtml = results.map(function(result, idx){
+    var resultsHtml = scoredResults.map(function(scoredResult, idx){
+      var result = scoredResult[1];
+      var score = scoredResult[0];
+      console.log('render', score, result);
       var rowHtml = result.map(function(tile){
         return getTdHtml(tile.id);
       });
-      rowHtml = '<table><tr>' + rowHtml.join('') + '</tr></table>';
+      rowHtml = '<table><tr>' + rowHtml.join('') + '<td>' + score + '</td></tr></table>';
       rowHtml += '<button class="showResult" data-result="' + idx + '">Show</button>';
       return rowHtml;
     });
@@ -393,7 +397,7 @@
 
     if (event.target.className == "showResult") {
       var resultIndex = parseInt(event.target.getAttribute('data-result'), 10);
-      renderResultOnGrid(results[resultIndex]);
+      renderResultOnGrid(scoredResults[resultIndex][1]);
     }
   });
 
@@ -457,7 +461,7 @@
 
     var tileGroups = grid.getTileGroups(hand);
 
-    results = [];
+    var results = [];
     for (var g=0; g<tileGroups.length; g++) {
 
       // for each group, e.g. ["a1", "a4", "a6"], try every possible order
@@ -468,14 +472,20 @@
         results = results.concat(r);
       }
     }
-    
-    results.sort(function(a, b) { 
-        return b.length - a.length;
-    })
-    console.log(results);
-    console.log("Found ", results.length, "results");
 
-    renderResults(results);
+    // scoredResults is global variable so we can access it when results are clicked
+    scoredResults = results.map(function(r){
+      var score = grid.getScore(r);
+      console.log(score, r);
+      return [score, r];
+    })
+    
+    scoredResults.sort(function(a, b) { 
+        return b[0] - a[0];
+    })
+    console.log("Found ", scoredResults.length, "results");
+
+    renderResults(scoredResults);
   });
 
   document.getElementById('hand').addEventListener('click', function(event){
