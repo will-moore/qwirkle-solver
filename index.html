@@ -369,27 +369,53 @@
       });
       rowHtml = '<table><tr>' + rowHtml.join('') + '<td>' + score + '</td></tr></table>';
       rowHtml += '<button class="showResult" data-result="' + idx + '">Show</button>';
+      rowHtml += '<button class="addResult" data-result="' + idx + '">Add</button>';
       return rowHtml;
     });
     document.getElementById('results').innerHTML = resultsHtml.join('');
   }
 
 
-  var renderResultOnGrid = function(result) {
-    console.log('renderResultOnGrid', result)
+  var showResultOnGrid = function(result) {
     var resultGrid = grid.clone();
     var newTiles = resultGrid.addTilesOneByOne(result);
-    console.log('newTiles', newTiles);
     renderTiles(resultGrid, 'grid', undefined, newTiles);
+  }
+
+  var addResultToGrid = function(result) {
+    grid.addTilesOneByOne(result);
+    renderTiles(grid, 'grid');
+  }
+
+  var removeTilesFromHand = function(tiles) {
+    tiles.forEach(function(t){
+      var tileId = t.id;
+      var idx = hand.indexOf(tileId);
+      if (idx > -1) {
+        hand.splice(idx, 1);
+      }
+    });
+    renderHand();
   }
 
 
   document.getElementById('results').addEventListener('click', function(event){
     console.log(event.target.className);
 
+    var resultIndex = parseInt(event.target.getAttribute('data-result'), 10);
+    resultTiles = scoredResults[resultIndex][1];
+
     if (event.target.className == "showResult") {
       var resultIndex = parseInt(event.target.getAttribute('data-result'), 10);
-      renderResultOnGrid(scoredResults[resultIndex][1]);
+      showResultOnGrid(resultTiles);
+    }
+    else if (event.target.className == "addResult") {
+      var resultIndex = parseInt(event.target.getAttribute('data-result'), 10);
+      addResultToGrid(resultTiles);
+      // Clear other results which are no longer valid
+      document.getElementById('results').innerHTML = "";
+      // Remove tiles from hand
+      removeTilesFromHand(resultTiles);
     }
   });
 
@@ -420,15 +446,16 @@
   });
 
   document.getElementById('grid').addEventListener('click', function(event){
-    console.log(arguments);
-
+    // Clicking on the main grid adds clicked tile to grid
     var tile = event.target.getAttribute('data-tile');
     var row = parseInt(event.target.getAttribute('data-row'));
     var column = parseInt(event.target.getAttribute('data-column'));
     console.log(tile, row, column);
-
-    grid.addTile(tile, row, column);
-    renderTiles(grid, 'grid');
+    // Add if we've clicked a non-empty 'highlighted' tile
+    if (tile.length > 0 && event.target.parentNode.classList.contains("highlight")) {
+      grid.addTile(tile, row, column);
+      renderTiles(grid, 'grid');
+    }
   });
 
   document.getElementById('addToHand').addEventListener('click', function(event){

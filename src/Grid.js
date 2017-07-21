@@ -532,13 +532,20 @@ Grid.prototype.getScore = function(tiles) {
         if (columnTiles.length > 0) {
             // Adding a single tile to a row, isColumn() is true but columnTiles.length is 0
             score = columnTiles.length + 1;     // include the tile itself
+            if (score === 6) {
+                score = 12;
+            }
         }
 
         // Get score for all Rows...
         newTiles.forEach(function(t){
             var rowTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[0];
             if (rowTiles.length > 0) {
-                score += (rowTiles.length + 1);
+                if (rowTiles.length === 5) {
+                    score += 12;    // Qwirkle!
+                } else {
+                    score += (rowTiles.length + 1);
+                }
             }
         }.bind(resultGrid));
 
@@ -547,12 +554,19 @@ Grid.prototype.getScore = function(tiles) {
         var t = newTiles[0];
         var rowTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[0];
         score = rowTiles.length + 1;     // include the tile itself
+        if (score === 6) {
+            score = 12;
+        }
 
         // Get score for all Columns...
         newTiles.forEach(function(t){
             var columnTiles = resultGrid.getRowAndColumnTilesFrom(t.row, t.column)[1];
             if (columnTiles.length > 0) {
-                score += (columnTiles.length + 1);
+                if (columnTiles.length === 5) {
+                    score += 12;    // Qwirkle!
+                } else {
+                    score += (columnTiles.length + 1);
+                }
             }
         }.bind(resultGrid));
     }
