@@ -160,6 +160,16 @@
     opacity: 1;
   }
 
+  #clickToAddMsg {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
   body {
     margin: 0;
   }
@@ -264,6 +274,10 @@
   </table>
 </div>
 
+<div id="clickToAddMsg">
+  Click 'active' tiles to add
+</div>
+
 
 <body>
 </body>
@@ -292,10 +306,13 @@
 
   var scoredResults = [];
 
-  var getTdHtml = function(tile, highlight, row, column) {
+  var getTdHtml = function(tile, highlight, clickToAdd, row, column) {
     var cls = '';
     if (highlight) {
-      cls = 'highlight';
+      cls += 'highlight';
+    }
+    if (clickToAdd) {
+      cls += ' clickToAdd';
     }
     var src = tile == '' ? 'spacer.png' : imgs[tile[0]] + '.png';
     var color = tile == '' ? 'transparent' : colours[tile[1]];
@@ -306,7 +323,10 @@
   }
 
   var renderTiles = function(resultGrid, domId, test, highlightCoords) {
+    // 'test' is a single tile e.g. "a1" that we are testing in empty grid squares
+    // 'highlightCoords' is a list of tiles to show at coords
 
+    console.log("renderTiles", test, highlightCoords);
     var tiles = resultGrid.grid
     var html = '';
     for (var row=-1; row<=tiles.length; row++) {
@@ -315,9 +335,11 @@
         var tile = resultGrid.getTileAt(row, column);
 
         var highlight = false;
+        var clickToAdd = false;
         if (test) {
           if (grid.isValid({'id': test, 'row': row, 'column': column})) {
             highlight = true;
+            clickToAdd = true;
             tile=test;
           }
         } else if (highlightCoords) {
@@ -329,11 +351,17 @@
             }
           }
         }
-        html += getTdHtml(tile, highlight, row, column);
+        html += getTdHtml(tile, highlight, clickToAdd, row, column);
       }
       html += '</tr>';
     }
     document.getElementById(domId).innerHTML = html;
+    // If we're highlighting tiles for click-to-add, show "Click to add" message
+    if(test) {
+      document.getElementById("clickToAddMsg").style.visibility = "visible";
+    } else {
+      document.getElementById("clickToAddMsg").style.visibility = "hidden";
+    }
   }
 
   // grid.addTiles([ {'id': 'a4', 'row': 0, 'column': 0},
@@ -452,7 +480,7 @@
     var column = parseInt(event.target.getAttribute('data-column'));
     console.log(tile, row, column);
     // Add if we've clicked a non-empty 'highlighted' tile
-    if (tile.length > 0 && event.target.parentNode.classList.contains("highlight")) {
+    if (tile.length > 0 && event.target.parentNode.classList.contains("clickToAdd")) {
       grid.addTile(tile, row, column);
       renderTiles(grid, 'grid');
     }

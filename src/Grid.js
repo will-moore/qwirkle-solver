@@ -2,7 +2,7 @@
 
 function tryTiles(tiles, grid, restrictTo, prevResult) {
     // for each space that the first tile fits...
-    // we try to fit remaing tiles onto same row/column
+    // we try to fit remaining tiles onto same row/column
 
     if (tiles.length === 0) {
         return [prevResult];
